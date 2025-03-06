@@ -630,6 +630,63 @@ namespace OOP_InAPI
             }
         }
 
+        private void ChangeParametersInPart(Dictionary<string, double> parametersToUpdate)
+        {
+            try
+            {
+                PartDocument partDoc = (PartDocument)invApp.ActiveDocument;
+                if (partDoc == null)
+                {
+                    MessageBox.Show("Không có part nào được mở");
+                    return;
+                }
+
+                Parameters partParameters = partDoc.ComponentDefinition.Parameters;
+                bool updated = false;
+
+                foreach (var entry in parametersToUpdate)
+                {
+                    string parameterName = entry.Key;
+                    double newValue = entry.Value;
+
+                    UserParameter userParameter = partParameters.UserParameters[parameterName];
+                    if (userParameter != null)
+                    {
+                        userParameter.Value = newValue;
+                        updated = true;
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Lỗi không thể thay đổi tham số {parameterName}, vui lòng kiểm tra lại");
+                    }
+                }
+
+                if (updated)
+                {
+                    partDoc.Update();
+                    SetView();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message);
+            }
+
+            /*
+            var parametersToUpdate = new Dictionary<string, double>
+            {
+                { "ParameterName1", 20.0 },
+                { "ParameterName2", 45.0 },
+                { "ParameterName3", 70.0 }
+            };
+
+            ParameterChanger changer = new ParameterChanger(invApp);
+            changer.ChangeParametersInPart(parametersToUpdate);
+
+             * */
+
+        }
+
         //viết tổng quát lên
 
         public void ToggleFeatureSuppression(string featureName)
