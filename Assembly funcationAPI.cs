@@ -267,3 +267,94 @@ private void AnalyzeInterferenceAndSuppressComponents1()
                 Console.WriteLine($"Đã xảy ra lỗi khi vô hiệu hóa component {component.Name}: {ex.Message}");
             }
         }
+//////////////lưu với đường dẫn linh hoạt
+
+private  void AnalyzeInterferenceAndSuppressComponents2()
+        {
+            try
+            {
+                if (invApp != null)
+                {
+                    Console.WriteLine("Kết nối thành công với Autodesk Inventor.");
+
+                    // Lấy tài liệu Assembly đang mở
+                    AssemblyDocument asmDoc = (AssemblyDocument)invApp.ActiveDocument;
+
+                    if (asmDoc != null)
+                    {
+                        // Lấy ComponentDefinition của Assembly
+                        AssemblyComponentDefinition asmCompDef = asmDoc.ComponentDefinition;
+
+                        // Tạo danh sách các thành phần kiểm tra sự giao thoa
+                        ObjectCollection allComponents = invApp.TransientObjects.CreateObjectCollection();
+                        foreach (ComponentOccurrence comp in asmCompDef.Occurrences)
+                        {
+                            allComponents.Add(comp);
+                        }
+
+                        // Phân tích sự giao thoa
+                        InterferenceResults interferenceResults = asmCompDef.AnalyzeInterference(allComponents);
+
+                        // Hiển thị hộp thoại lưu tệp
+                        SaveFileDialog saveFileDialog = new SaveFileDialog();
+                        saveFileDialog.Filter = "Text Files|*.txt";
+                        saveFileDialog.Title = "Save Interference Results";
+                        saveFileDialog.FileName = "InterferenceResults.txt";
+
+                        if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            string filePath = saveFileDialog.FileName;
+                            using (StreamWriter writer = new StreamWriter(filePath))
+                            {
+                                if (interferenceResults.Count > 0)
+                                {
+                                    writer.WriteLine("Danh sách các chi tiết va chạm:");
+                                    foreach (InterferenceResult result in interferenceResults)
+                                    {
+                                        string message = $"Giao thoa giữa {result.OccurrenceOne.Name} và {result.OccurrenceTwo.Name}";
+                                        writer.WriteLine(message);
+                                        SuppressComponent(result.OccurrenceOne);
+                                        SuppressComponent(result.OccurrenceTwo);
+                                    }
+                                    Console.WriteLine("Các thành phần gây ra sự giao thoa đã được vô hiệu hóa và danh sách được lưu ra file.");
+                                }
+                                else
+                                {
+                                    writer.WriteLine("Không tìm thấy sự giao thoa nào.");
+                                    Console.WriteLine("Không tìm thấy sự giao thoa nào.");
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Không có tài liệu assembly nào đang mở.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Không thể kết nối với Autodesk Inventor.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Đã xảy ra lỗi: {ex.Message}");
+                Console.WriteLine($"Chi tiết: {ex.StackTrace}");
+            }
+        }
+
+        private  void SuppressComponent2(ComponentOccurrence component)
+        {
+            try
+            {
+                if (!component.Suppressed)
+                {
+                    component.Suppress(true); // Vô hiệu hóa (suppress) thành phần
+                    Console.WriteLine($"Component {component.Name} đã được vô hiệu hóa.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Đã xảy ra lỗi khi vô hiệu hóa component {component.Name}: {ex.Message}");
+            }
+        }
