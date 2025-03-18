@@ -683,3 +683,158 @@ private static void ImportAndMatePartsLoop(Inventor.Application inventorApp, str
         {
             return (Control.ModifierKeys & key) == key;
         }
+
+
+////////////////pitch object chạy theo con chuột chưa chạy được, đang lỗi
+
+        /*
+         *  private InteractionEvents interactionEvents;
+        private ComponentOccurrence boltOcc;
+        private AssemblyComponentDefinition asmCompDef;
+        private Edge holeEdge;
+        private Face partFace;
+         * */
+         /*
+        private void ImportAndMatePartsWithInteraction(Inventor.Application inventorApp, string partFilePath, string boltFilePath)
+        {
+            try
+            {
+                // Kiểm tra nếu tài liệu hiện tại là AssemblyDocument
+                if (!(inventorApp.ActiveDocument is AssemblyDocument asmDoc))
+                {
+                    throw new InvalidOperationException("The current document is not an AssemblyDocument.");
+                }
+
+                // Thêm chi tiết vào Assembly
+                Console.WriteLine("Thêm phần tử vào Assembly...");
+                asmCompDef = asmDoc.ComponentDefinition;
+                ComponentOccurrence partOcc = asmCompDef.Occurrences.Add(partFilePath, inventorApp.TransientGeometry.CreateMatrix());
+
+                // Chọn tâm lỗ của chi tiết import
+                Console.WriteLine("Hãy chọn tâm lỗ của chi tiết...");
+                holeEdge = inventorApp.CommandManager.Pick(SelectionFilterEnum.kPartEdgeFilter, "Chọn trục của lỗ.") as Edge;
+                if (holeEdge == null)
+                {
+                    Console.WriteLine("Không chọn được trục.");
+                    return;
+                }
+
+                // Chọn bề mặt của chi tiết import
+                Console.WriteLine("Hãy chọn bề mặt của chi tiết...");
+                partFace = inventorApp.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Chọn bề mặt của chi tiết.") as Face;
+                if (partFace == null)
+                {
+                    Console.WriteLine("Không chọn được bề mặt.");
+                    return;
+                }
+
+                // Thêm bu lông vào Assembly và di chuyển đến vị trí con chuột
+                Console.WriteLine("Thêm bu lông vào Assembly...");
+                boltOcc = asmCompDef.Occurrences.Add(boltFilePath, inventorApp.TransientGeometry.CreateMatrix());
+
+                interactionEvents = inventorApp.CommandManager.CreateInteractionEvents();
+                interactionEvents.OnTerminate += new InteractionEventsSink_OnTerminateEventHandler(InteractionEvents_OnTerminate);
+                interactionEvents.OnMouseMove += new InteractionEventsSink_OnMouseMoveEventHandler(InteractionEvents_OnMouseMove);
+                interactionEvents.OnSelect += new SelectEventsSink_OnSelectEventHandler(InteractionEvents_OnSelect);
+
+                interactionEvents.StatusBarText = "Di chuyển bu lông đến vị trí và nhấn chọn để chèn.";
+                interactionEvents.MouseMoveEnabled = true;
+                interactionEvents.SelectEvents.Enabled = true;
+
+                interactionEvents.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during assembly process: {ex.Message}");
+            }
+        }
+
+        private void InteractionEvents_OnSelect(Inventor.Application inventorApp, ObjectsEnumerator JustSelectedEntities, SelectionDeviceEnum SelectionDevice, Point ModelPosition, Point2d ViewPosition, Inventor.View View)
+        {
+            try
+            {
+                if (JustSelectedEntities != null && JustSelectedEntities.Count > 0)
+                {
+                    if (JustSelectedEntities[1] is Face selectedFace)
+                    {
+                        // Thiết lập vị trí của bu lông theo vị trí chuột
+                        Matrix position = inventorApp.TransientGeometry.CreateMatrix();
+                        position.SetTranslation(inventorApp.TransientGeometry.CreateVector(ModelPosition.X, ModelPosition.Y, ModelPosition.Z));
+                        boltOcc.Transformation = position;
+
+                        Face boltFace = null;
+                        Edge boltAxis = null;
+
+                        foreach (Face face in boltOcc.SurfaceBodies[1].Faces)
+                        {
+                            if (face.SurfaceType == SurfaceTypeEnum.kPlaneSurface)
+                            {
+                                boltFace = face;
+                                break;
+                            }
+                        }
+
+                        foreach (Edge edge in boltOcc.SurfaceBodies[1].Edges)
+                        {
+                            if (edge.CurveType == CurveTypeEnum.kCircularArcCurve)
+                            {
+                                boltAxis = edge;
+                                break;
+                            }
+                        }
+
+                        if (boltAxis != null && boltFace != null)
+                        {
+                            interactionEvents.Stop();
+                            // Tạo lắp ghép trùng tâm của đường tâm lỗ và bu lông
+                            Console.WriteLine("Tạo lắp ghép đồng tâm...");
+                            asmCompDef.Constraints.AddInsertConstraint(holeEdge, boltAxis, true, 0);
+                            // Tạo lắp ghép bề mặt giữa mặt của part và mặt của bu lông
+                            Console.WriteLine("Tạo lắp ghép bề mặt...");
+                            asmCompDef.Constraints.AddMateConstraint(partFace, boltFace, 0);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during selection: {ex.Message}");
+            }
+        }
+
+        private void InteractionEvents_OnMouseMove(Inventor.Application inventorApp, MouseEventsData MouseEvents)
+        {
+            try
+            {
+                Matrix position = inventorApp.TransientGeometry.CreateMatrix();
+                position.SetTranslation(inventorApp.TransientGeometry.CreateVector(MouseEvents.ModelPosition.X, MouseEvents.ModelPosition.Y, MouseEvents.ModelPosition.Z));
+                boltOcc.Transformation = position;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during mouse move: {ex.Message}");
+            }
+        }
+
+        private void InteractionEvents_OnTerminate()
+        {
+            try
+            {
+                // Giải phóng tài nguyên
+                if (interactionEvents != null)
+                {
+                    Marshal.ReleaseComObject(interactionEvents);
+                    interactionEvents = null;
+                }
+                if (boltOcc != null)
+                {
+                    Marshal.ReleaseComObject(boltOcc);
+                    boltOcc = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during termination: {ex.Message}");
+            }
+        }
+        */
