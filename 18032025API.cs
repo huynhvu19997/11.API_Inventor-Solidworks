@@ -496,3 +496,95 @@ private static void ImportAndMateParts(Inventor.Application inventorApp, string 
                 Console.WriteLine($"Error during assembly process: {ex.Message}");
             }
         }
+
+
+ private void ImportAndMatePartsMultiple(Inventor.Application inventorApp, string partFilePath, string boltFilePath)
+        {
+            try
+            {
+                // Kiểm tra nếu tài liệu hiện tại là AssemblyDocument
+                if (!(inventorApp.ActiveDocument is AssemblyDocument asmDoc))
+                {
+                    throw new InvalidOperationException("The current document is not an AssemblyDocument.");
+                }
+
+                // Thêm chi tiết vào Assembly
+                Console.WriteLine("Thêm phần tử vào Assembly...");
+                AssemblyComponentDefinition asmCompDef = asmDoc.ComponentDefinition;
+                ComponentOccurrence partOcc = asmCompDef.Occurrences.Add(partFilePath, inventorApp.TransientGeometry.CreateMatrix());
+
+                // Lặp lại quá trình thêm bu lông và tạo đồng tâm lỗ cho đến khi người dùng nhấn nút Exit
+                while (true)
+                {
+                    // Chọn tâm lỗ của chi tiết import
+                    Console.WriteLine("Hãy chọn tâm lỗ của chi tiết...");
+                    Edge holeEdge = inventorApp.CommandManager.Pick(SelectionFilterEnum.kPartEdgeFilter, "Chọn trục của lỗ.") as Edge;
+                    if (holeEdge == null)
+                    {
+                        Console.WriteLine("Không chọn được trục.");
+                        break;
+                    }
+
+                    // Chọn bề mặt của chi tiết import
+                    Console.WriteLine("Hãy chọn bề mặt của chi tiết...");
+                    Face partFace = inventorApp.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Chọn bề mặt của chi tiết.") as Face;
+                    if (partFace == null)
+                    {
+                        Console.WriteLine("Không chọn được bề mặt.");
+                        break;
+                    }
+
+                    // Thêm bu lông vào Assembly
+                    Console.WriteLine("Thêm bu lông vào Assembly...");
+                    ComponentOccurrence boltOcc = asmCompDef.Occurrences.Add(boltFilePath, inventorApp.TransientGeometry.CreateMatrix());
+
+                    // Chọn trục của bu lông
+                    Console.WriteLine("Hãy chọn trục của bu lông...");
+                    Edge boltAxis = inventorApp.CommandManager.Pick(SelectionFilterEnum.kPartEdgeFilter, "Chọn trục của bu lông.") as Edge;
+                    if (boltAxis == null)
+                    {
+                        Console.WriteLine("Không chọn được trục của bu lông.");
+                        break;
+                    }
+
+                    // Chọn bề mặt của bu lông
+                    Console.WriteLine("Hãy chọn bề mặt của bu lông...");
+                    Face boltFace = inventorApp.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Chọn bề mặt của bu lông.") as Face;
+                    if (boltFace == null)
+                    {
+                        Console.WriteLine("Không chọn được bề mặt của bu lông.");
+                        break;
+                    }
+
+                    // Tạo lắp ghép trùng tâm của đường tâm lỗ và bu lông
+                    Console.WriteLine("Tạo lắp ghép đồng tâm...");
+                    asmCompDef.Constraints.AddInsertConstraint(holeEdge, boltAxis, true, 0);
+
+                    // Xác minh rằng cả hai bề mặt đều là mặt phẳng trước khi tạo lắp ghép bề mặt
+                    if (partFace.SurfaceType == SurfaceTypeEnum.kPlaneSurface && boltFace.SurfaceType == SurfaceTypeEnum.kPlaneSurface)
+                    {
+                        // Tạo lắp ghép bề mặt giữa mặt của part và mặt của bu lông
+                        Console.WriteLine("Tạo lắp ghép bề mặt...");
+                        asmCompDef.Constraints.AddMateConstraint(partFace, boltFace, 0);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Một trong các bề mặt không phải là bề mặt phẳng, không thể tạo lắp ghép mặt phẳng.");
+                    }
+
+                    // Kiểm tra nếu người dùng muốn thoát
+                    Console.WriteLine("Press 'Enter' to insert another bolt or type 'exit' to quit:");
+                    string userInput = Console.ReadLine();
+                    if (userInput.ToLower() == "exit")
+                    {
+                        break;
+                    }
+                }
+
+                Console.WriteLine("Hoàn thành lắp ghép.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during assembly process: {ex.Message}");
+            }
+        }
